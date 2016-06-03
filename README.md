@@ -1,6 +1,6 @@
 Attention-Based Long Short-Term Memory Enocder for Community Question Answering
 =======
-## Data Formatting
+# Data Formatting
 
 ### trainData/testData
 
@@ -17,39 +17,45 @@ Data is stored using cPickle package, and formatted as follows:
 
 ### tag2rank
 Tag2rank is a dictionary mapping tags to ranks, and is stored using cPickle package. For example,
+
 `{'Q1\tQ1\_R1': 1, 'Q1\tQ1\_R4': 2, 'Q2\tQ2\_R7': 1, 'Q2\tQ2\_R10': 2}`
 
----
-## How to run
+### dict
+Dict contains two dictionary and is stored using cPickle package.
+
+* `dict[0]`: dictionary mapping words to IDs
+* `dict[1]`: dictionary mapping IDs to words
+
+# How to run
 
 ### Training
 These scripts take training set and test set as input, and generate ALSTM encoder models.
 `--saveto` specifies where to save model; `--loadfrom` loads existing model
 
-#### Sequential LSTM Encoder with Attention
+##### Sequential LSTM Encoder with Attention
 `python rnn_enc/scripts/attention_trainer.py [--saveto <saveto>] [--loadfrom <loadfrom>] [--max_epoch <max_epoch>] [--swap | --no-swap] <trainData> <testData>`
 
-#### Sequential LSTM Encoder with Attention + Rank Feature
+##### Sequential LSTM Encoder with Attention + Rank Feature
 `python rnn_enc/scripts/attention_augFeat_trainer.py [--saveto <saveto>] [--loadfrom <loadfrom>] [--max_epoch <max_epoch>] [--swap | --no-swap] <trainData> <testData> <tag2rank>`
 
-***
+___
 ### Testing
 These scripts load trained models and predict relevance scores of testData.
 `--outFile` specifies where to save prediction results
 
-#### Sequential LSTM Encoder with Attention
+##### Sequential LSTM Encoder with Attention
 `python rnn_enc/scripts/attention_tester.py [--outFile <outFile>] [--swap | --no-swap] <loadfrom> <testData>`
 
-#### Sequential LSTM Encoder with Attention + Rank Feature
+##### Sequential LSTM Encoder with Attention + Rank Feature
 `python rnn_enc/scripts/attention_augFeat_tester.py [--outFile <outFile>] [--swap | --no-swap] <loadfrom> <testData> <tag2rank>`
 
-***
+___
 ### Retrieve Attention Weights
 These scripts load trained models and output attention weights of sentences fed to first LSTM encoder in testData.
 Dict helps convert index to word. Sentences in word and weights of sentences fed to first LSTM encoder will stores in dumpDir.
 
-#### Sequential LSTM Encoder with Attention
+##### Sequential LSTM Encoder with Attention
 `python rnn_enc/scripts/attention_extWeight.py <loadfrom> <testData> <dict> <dumpDir>`
 
-#### Sequential LSTM Encoder with Attention + Rank Feature
+##### Sequential LSTM Encoder with Attention + Rank Feature
 `python rnn_enc/scripts/attention_augFeat_extWeight.py <loadfrom> <testData> <tag2rank> <dict> <dumpDir>`
