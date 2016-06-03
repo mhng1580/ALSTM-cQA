@@ -8,7 +8,7 @@ from rnn_enc.model.attention_augFeat import ALSTM_augFeat_model
 from rnn_enc.utils.tools import LoadParamsToModel
 from rnn_enc.utils.cqa import PrepareData, LoadData, get_minibatches_idx, ExtAugFeat
 
-def DumpSentAndAttWeight_augFeat(testFile, tag2rankData, modelFile, dictFile=None, batchSize=200, ifSwap=False, isTrain=False):
+def DumpSentAndAttWeight_augFeat(testFile, tag2rankData, modelFile, dictFile=None, batchSize=200, ifSwap=False):
     tmpTest, tmpValid, _ = LoadData(testFile, n_words=1000000)
     tmpTest = [tmpTest[0]+tmpValid[0], tmpTest[1]+tmpValid[1], tmpTest[2]+tmpValid[2], tmpTest[3]+tmpValid[3]]
     test = (tmpTest[1], tmpTest[0], tmpTest[2], tmpTest[3]) if ifSwap else tmpTest
@@ -47,11 +47,11 @@ def DumpSentAndAttWeight_augFeat(testFile, tag2rankData, modelFile, dictFile=Non
     # building theano functions
     print('building theano functions...')
     givens_test = [(ifDropout, np.array(0, dtype=ifDropout.dtype))] if not (ifDropout is None) else []
-    errors = classifier.get_errors(*(inputList + [output] + [augInput]))
-    f_test = theano.function(inputs=inputList + [output] + [augInput],
-                             outputs=errors,
-                             givens=givens_test,
-                             name='testModel')
+    # errors = classifier.get_errors(*(inputList + [output] + [augInput]))
+    # f_test = theano.function(inputs=inputList + [output] + [augInput],
+    #                          outputs=errors,
+    #                          givens=givens_test,
+    #                          name='testModel')
     weights = classifier.get_attention_weight(*inputList)
     f_weight = theano.function(inputs=inputList,
                                outputs=weights,
@@ -61,11 +61,11 @@ def DumpSentAndAttWeight_augFeat(testFile, tag2rankData, modelFile, dictFile=Non
     # start testing and calc weights
     print('start testing...')
     kf_test = get_minibatches_idx(len(test[0]), batchSize, shuffle=False)
-    errs = np.concatenate([f_test(*(list(PrepareData([test[0][t] for t in idx],
-                                                     [test[1][t] for t in idx],
-                                                     [test[2][t] for t in idx])) +
-                                    [np.vstack([test_augFeat[t,:] for t in idx])])) for _, idx in kf_test])
-    print('Error: {0}'.format(np.mean(errs)))
+    # errs = np.concatenate([f_test(*(list(PrepareData([test[0][t] for t in idx],
+    #                                                  [test[1][t] for t in idx],
+    #                                                  [test[2][t] for t in idx])) +
+    #                                 [np.vstack([test_augFeat[t,:] for t in idx])])) for _, idx in kf_test])
+    # print('Error: {0}'.format(np.mean(errs)))
     
     weights = [f_weight(*PrepareData([test[0][t] for t in idx],
                                      [test[1][t] for t in idx],
@@ -96,7 +96,14 @@ if __name__ == '__main__':
     tagFile = sys.argv[3]
     dictFile = sys.argv[4]
     dumpDir = sys.argv[5]
-    testWithWeights = DumpSentAndAttWeight_augFeat(testFile, tagFile, modelFile, dictFile, ifSwap=True, isTrain=True)
+
+    try:
+        os.makedirs('dumpDir')
+    except OSError:
+        pass
+
+    testWithWeights = DumpSentAndAttWeight_augFeat(testFile, tagFile, modelFile, dictFile, ifSwap=True)
+
     with open(dumpDir + 'sentence.txt', 'w') as f:
         for toks in testWithWeights[0]:
             s = ' '.join([w.decode('utf-8') for w in toks])
